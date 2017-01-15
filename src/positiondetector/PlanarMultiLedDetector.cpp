@@ -149,11 +149,90 @@ void PlanarMultiLedDetector::detectPosition(cv::Mat &frame, oat::Position2D &pos
     if (tuning_on_)
          tune_frame_.setTo(0, threshold_frame_ == 0);
 
-    siftContours(threshold_frame_,
-                 position,
-                 object_area_,
-                 min_object_area_,
-                 max_object_area_);
+    // siftContours(threshold_frame_,
+    //             position,
+    //             object_area_,
+    //             min_object_area_,
+    //             max_object_area_);
+
+    std::vector<std::vector <cv::Point> > contours;
+
+    cv::Point leds[3];
+
+    // NOTE: This function will modify the frame
+    cv::findContours(threshold_frame_, contours, 
+                     cv::RETR_EXTERNAL, 
+                     cv::CHAIN_APPROX_SIMPLE);
+
+    //double object_area = 0;
+    int Nmarkers=0;
+    double object_area = 0;
+    position.position_valid = false;
+
+    for (auto &c : contours) {
+        
+        cv::Moments moment = cv::moments(static_cast<cv::Mat>(c));
+        double countour_area = moment.m00;
+
+        // Isolate the largest contour within the min/max range.
+        if (countour_area >= min_object_area_ &&
+            countour_area < max_object_area_ ) {
+            
+            
+
+            position.position.x = moment.m10 / countour_area;
+            position.position.y = moment.m01 / countour_area;
+            if (Nmarkers <=2) {
+                leds[Nmarkers].x=position.position.x;
+                leds[Nmarkers].y=position.position.y;
+            }
+            Nmarkers++;
+
+            object_area = countour_area;
+        }
+    }
+        object_area_ = object_area;
+    
+    if (Nmarkers==3) {
+        position.position_valid = true;
+        position.heading_valid = true;
+
+        int dist[3];
+        cv::Point midpoint; // mid point of the shortest side of triangle
+        cv::Point heading; // unity vector from midpoint to opposing led
+
+        dist[0] = cv::norm(leds[1]-leds[2]); // with this indexing scheme, the smallest dist corresponds to the most acutely angled/pointiest vertex
+        dist[1] = cv::norm(leds[0]-leds[2]);
+        dist[2] = cv::norm(leds[0]-leds[1]);
+
+        if ((dist[0] < dist[1]) & (dist[0] < dist[2]) ) { //0 smallest
+            midpoint = (leds[1]+leds[2])/2;
+            heading  = leds[0]-midpoint;
+
+        }
+        if ((dist[1] < dist[0]) & (dist[1] < dist[2]) ) { //1 smallest
+            midpoint = (leds[0]+leds[2])/2;
+            heading  = leds[1]-midpoint;            
+        }
+        if ((dist[2] < dist[1]) & (dist[2] < dist[0]) ) { // 2 smallest
+            midpoint = (leds[1]+leds[0])/2;
+            heading  = leds[2]-midpoint;
+        }
+        //heading=heading/norm(heading);
+
+        position.position.x = midpoint.x;
+        position.position.y = midpoint.y;
+        
+        position.heading.x = heading.x/norm(heading);
+        position.heading.y = heading.y/norm(heading);
+
+        //std::cout << " d " <<  dist[0] <<"\n";
+        
+
+
+    }
+
+    //std::cout << " found " << Nmarkers <<"\n";
 
     if (tuning_on_)
         tune(tune_frame_, position);
