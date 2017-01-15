@@ -36,6 +36,7 @@
 #include "HSVDetector.h"
 #include "DifferenceDetector.h"
 #include "SimpleThreshold.h"
+#include "PlanarMultiLedDetector.h"
 
 #define REQ_POSITIONAL_ARGS 3
 
@@ -48,7 +49,8 @@ const char usage_type[] =
     "TYPE\n"
     "  diff: Difference detector (color or grey-scale, motion)\n"
     "  hsv: HSV color thresholds (color)\n"
-    "  thresh: Simple amplitude threshold (mono)";
+    "  thresh: Simple amplitude threshold (mono)\n"
+    "  planarled: track planar 3-led pattern (mono)";
 
 const char usage_io[] =
     "SOURCE:\n"
@@ -124,6 +126,7 @@ int main(int argc, char *argv[])
     type_hash["diff"] = 'a';
     type_hash["hsv"] = 'b';
     type_hash["thresh"] = 'c';
+    type_hash["planarled"] = 'd';
 
     // The component itself
     std::string comp_name = "posidet";
@@ -196,6 +199,11 @@ int main(int argc, char *argv[])
                 case 'c':
                 {
                     detector = std::make_shared<oat::SimpleThreshold>(source, sink);
+                    break;
+                }
+                case 'd':
+                {
+                    detector = std::make_shared<oat::PlanarMultiLedDetector>(source, sink);
                     break;
                 }
                 default:

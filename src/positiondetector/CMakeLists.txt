@@ -8,6 +8,7 @@ set (oat-posidet_SOURCE
      DifferenceDetector.cpp
      HSVDetector.cpp
      SimpleThreshold.cpp
+     PlanarMultiLedDetector.cpp
      main.cpp)
 
 # Target
