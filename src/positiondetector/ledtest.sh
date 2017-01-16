@@ -8,7 +8,7 @@ case "$1" in
 		
 		#oat posisock pub pos -e 'tcp://*:5555' &
 		oat posisock std  pos&
-		oat posidet planarled raw pos -T [250,255] -d 7  --tune &
+		oat posidet planarled raw pos -T [250,255] -e 12 -d 17  --tune &
 		oat view frame raw &
 		oat frameserve usb raw -r 30 -s 30 -g 16  -C GREY
 	

@@ -186,6 +186,17 @@ void PlanarMultiLedDetector::detectPosition(cv::Mat &frame, oat::Position2D &pos
     }
         object_area_ = object_area;
    
+    if (Nmarkers==1) {
+        position.position_valid = true;
+        position.position.x = leds[0].x;
+        position.position.y = leds[0].y;
+    }
+
+    if (Nmarkers==2) {
+        position.position_valid = true;
+        position.position.x = (leds[0].x+leds[1].x)/2;
+        position.position.y = (leds[0].y+leds[1].y)/2;
+    }
 
     if (Nmarkers==3) {
         position.position_valid = true;
