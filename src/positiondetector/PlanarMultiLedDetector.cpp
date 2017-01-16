@@ -149,12 +149,6 @@ void PlanarMultiLedDetector::detectPosition(cv::Mat &frame, oat::Position2D &pos
     if (tuning_on_)
          tune_frame_.setTo(0, threshold_frame_ == 0);
 
-    // siftContours(threshold_frame_,
-    //             position,
-    //             object_area_,
-    //             min_object_area_,
-    //             max_object_area_);
-
     std::vector<std::vector <cv::Point> > contours;
 
     cv::Point leds[3];
@@ -178,7 +172,6 @@ void PlanarMultiLedDetector::detectPosition(cv::Mat &frame, oat::Position2D &pos
         if (countour_area >= min_object_area_ &&
             countour_area < max_object_area_ ) {
             
-            
 
             position.position.x = moment.m10 / countour_area;
             position.position.y = moment.m01 / countour_area;
@@ -192,7 +185,8 @@ void PlanarMultiLedDetector::detectPosition(cv::Mat &frame, oat::Position2D &pos
         }
     }
         object_area_ = object_area;
-    
+   
+
     if (Nmarkers==3) {
         position.position_valid = true;
         position.heading_valid = true;
@@ -218,21 +212,17 @@ void PlanarMultiLedDetector::detectPosition(cv::Mat &frame, oat::Position2D &pos
             midpoint = (leds[1]+leds[0])/2;
             heading  = leds[2]-midpoint;
         }
-        //heading=heading/norm(heading);
-
+        
         position.position.x = midpoint.x;
         position.position.y = midpoint.y;
         
-        position.heading.x = heading.x/norm(heading);
-        position.heading.y = heading.y/norm(heading);
-
-        //std::cout << " d " <<  dist[0] <<"\n";
-        
-
+        //position.heading.x = heading.x/norm(heading);
+        //position.heading.y = heading.y/norm(heading);
+        position.heading.x = heading.x;
+        position.heading.y = heading.y;
 
     }
 
-    //std::cout << " found " << Nmarkers <<"\n";
 
     if (tuning_on_)
         tune(tune_frame_, position);
@@ -254,6 +244,13 @@ void PlanarMultiLedDetector::tune(cv::Mat &frame, const oat::Position2D &positio
         center.x = position.position.x;
         center.y = position.position.y;
         cv::circle(frame, center, radius, cv::Scalar(255), 4);
+
+         cv::Point heading;
+        heading.x = position.heading.x;
+        heading.y = position.heading.y;
+        line(frame, center, center+(heading*1), cv::Scalar(255), 4, 8, 0);
+
+
         msg = cv::format("(%d, %d) pixels",
                 (int) position.position.x,
                 (int) position.position.y);
